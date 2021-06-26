@@ -1,5 +1,7 @@
 # Nginx - Authen request
 
+We use Kekcloak for Oauth Server
+
 ### Run container without js module
 ```shell
 docker run -p 8080:8080 --name nginx -d bitnami/nginx:1.20.0
@@ -15,7 +17,7 @@ docker run -p 8080:8080 --name nginx -d bitnami/nginx:1.20.0-custom
 ```shell
 docker cp server-custom.conf nginx:/opt/bitnami/nginx/conf/server_blocks
 docker cp oauth2.js nginx:/opt/bitnami/nginx/conf/server_blocks
-docker restart nginx && docker logs -f
+docker restart nginx && docker logs -f nginx
 ```
 
 # Reference Document
