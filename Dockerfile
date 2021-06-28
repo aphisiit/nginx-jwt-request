@@ -1,6 +1,7 @@
 ARG NGINX_VERSION=1.20.0
 ARG BITNAMI_NGINX_REVISION=r1
-ARG BITNAMI_NGINX_TAG=${NGINX_VERSION}-debian-10-${BITNAMI_NGINX_REVISION}
+# ARG BITNAMI_NGINX_TAG=${NGINX_VERSION}-debian-10-${BITNAMI_NGINX_REVISION}
+ARG BITNAMI_NGINX_TAG=${NGINX_VERSION}
 
 FROM bitnami/nginx:${BITNAMI_NGINX_TAG} AS builder
 USER root
@@ -21,7 +22,7 @@ RUN cd /tmp && \
 # Compile NGINX with desired module
 RUN cd /tmp/nginx-${NGINX_VERSION} && \
     rm -rf /opt/bitnami/nginx && \
-    ./configure --prefix=/opt/bitnami/nginx --with-compat --with-http_perl_module=dynamic --add-dynamic-module=../njs/nginx && \
+    ./configure --prefix=/opt/bitnami/nginx --with-compat --add-dynamic-module=../njs/nginx && \
     make && \
     make install
 
@@ -30,11 +31,12 @@ USER root
 # Install ngx_http_perl_module system package dependencies
 RUN install_packages libperl-dev
 # Install ngx_http_perl_module files
-COPY --from=builder /usr/local/lib/x86_64-linux-gnu/perl /usr/local/lib/x86_64-linux-gnu/perl
-COPY --from=builder /opt/bitnami/nginx/modules/ngx_http_perl_module.so /opt/bitnami/nginx/modules/ngx_http_perl_module.so
+# COPY --from=builder /usr/local/lib/x86_64-linux-gnu/perl /usr/local/lib/x86_64-linux-gnu/perl
+# COPY --from=builder /opt/bitnami/nginx/modules/ngx_http_perl_module.so /opt/bitnami/nginx/modules/ngx_http_perl_module.so
 COPY --from=builder /opt/bitnami/nginx/modules/ngx_http_js_module.so /opt/bitnami/nginx/modules/ngx_http_js_module.so
 # Enable module
-RUN echo "load_module modules/ngx_http_perl_module.so; load_module modules/ngx_http_js_module.so;" | cat - /opt/bitnami/nginx/conf/nginx.conf > /tmp/nginx.conf && \
+# RUN echo "load_module modules/ngx_http_perl_module.so; load_module modules/ngx_http_js_module.so;" | cat - /opt/bitnami/nginx/conf/nginx.conf > /tmp/nginx.conf && \
+RUN echo "load_module modules/ngx_http_js_module.so;" | cat - /opt/bitnami/nginx/conf/nginx.conf > /tmp/nginx.conf && \
     cp /tmp/nginx.conf /opt/bitnami/nginx/conf/nginx.conf
 # Set the container to be run as a non-root user by default
 USER 1001
