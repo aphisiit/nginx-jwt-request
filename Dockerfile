@@ -44,7 +44,7 @@ RUN gpg --verify nginx-${NGINX_VERSION}.tar.gz.asc nginx-${NGINX_VERSION}.tar.gz
 RUN tar xzf nginx-${NGINX_VERSION}.tar.gz 
 RUN export CFLAGS="-m64 -march=native -mtune=native -Ofast -flto -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections"
 RUN export LDFLAGS="-m64 -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections"
-RUN hg clone http://hg.nginx.org/njs
+RUN hg clone http://hg.nginx.org/njs -r 0.8.4
 # Compile NGINX with desired module
 WORKDIR /tmp/nginx-${NGINX_VERSION}
 RUN rm -rf /opt/bitnami/nginx 
