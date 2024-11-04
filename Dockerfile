@@ -1,4 +1,4 @@
-ARG NGINX_VERSION=1.20.0
+ARG NGINX_VERSION=1.27.2
 ARG BITNAMI_NGINX_REVISION=r1
 # ARG BITNAMI_NGINX_TAG=${NGINX_VERSION}-debian-10-${BITNAMI_NGINX_REVISION}
 ARG BITNAMI_NGINX_TAG=${NGINX_VERSION}
@@ -8,23 +8,44 @@ USER root
 # Redeclare NGINX_VERSION so it can be used as a parameter inside this build stage
 ARG NGINX_VERSION
 # Install required packages and build dependencies
-RUN apt-get update -y && apt install mercurial -y
-RUN install_packages dirmngr gpg gpg-agent curl build-essential libpcre3-dev zlib1g-dev libperl-dev 
+RUN apt-get update -y
+RUN install_packages dirmngr \
+         gpg \
+         gpg-agent \
+         mercurial \
+         curl \
+         build-essential \
+         libpcre3-dev \
+         zlib1g-dev \
+         libperl-dev \
+         libssl-dev \
+         libxslt-dev \
+         libxml2-dev
+
 # Add trusted NGINX PGP key for tarball integrity verification
-RUN gpg --keyserver pgp.mit.edu --recv-key 520A9993A1C052F8
+# RUN gpg --keyserver pgp.mit.edu --recv-key 2FD21310B49F6B46
+# RUN gpg --fingerprint 2FD21310B49F6B46
+# RUN curl -O https://nginx.org/keys/nginx_signing.key
+# RUN gpg --import nginx_signing.key
+
 # Download NGINX, verify integrity and extract
-RUN cd /tmp && \
-    curl -O http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz && \
-    curl -O http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz.asc && \
-    gpg --verify nginx-${NGINX_VERSION}.tar.gz.asc nginx-${NGINX_VERSION}.tar.gz && \
-    tar xzf nginx-${NGINX_VERSION}.tar.gz && \
-    hg clone http://hg.nginx.org/njs
+WORKDIR /tmp 
+RUN curl -O http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
+RUN curl -O http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz.asc 
+# RUN gpg --verify nginx-${NGINX_VERSION}.tar.gz.asc nginx-${NGINX_VERSION}.tar.gz 
+RUN tar xzf nginx-${NGINX_VERSION}.tar.gz 
+RUN export CFLAGS="-m64 -march=native -mtune=native -Ofast -flto -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections"
+RUN export LDFLAGS="-m64 -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections"
+RUN hg clone http://hg.nginx.org/njs
 # Compile NGINX with desired module
-RUN cd /tmp/nginx-${NGINX_VERSION} && \
-    rm -rf /opt/bitnami/nginx && \
-    ./configure --prefix=/opt/bitnami/nginx --with-compat --add-dynamic-module=../njs/nginx && \
-    make && \
-    make install
+WORKDIR /tmp/nginx-${NGINX_VERSION}
+RUN rm -rf /opt/bitnami/nginx 
+RUN ./configure \
+        --prefix=/opt/bitnami/nginx \
+        --with-compat \
+        --add-dynamic-module=../njs/nginx
+RUN make 
+RUN make install
 
 FROM bitnami/nginx:${BITNAMI_NGINX_TAG}
 USER root
