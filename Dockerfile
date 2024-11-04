@@ -23,16 +23,24 @@ RUN install_packages dirmngr \
          libxml2-dev
 
 # Add trusted NGINX PGP key for tarball integrity verification
-# RUN gpg --keyserver pgp.mit.edu --recv-key 2FD21310B49F6B46
-# RUN gpg --fingerprint 2FD21310B49F6B46
-# RUN curl -O https://nginx.org/keys/nginx_signing.key
-# RUN gpg --import nginx_signing.key
+# RUN gpg --keyserver pgp.mit.edu --recv-key D6786CE303D9A902
+# RUN gpg --fingerprint D6786CE303D9A902
+RUN curl -O https://nginx.org/keys/nginx_signing.key
+RUN curl -O https://nginx.org/keys/arut.key
+RUN curl -O https://nginx.org/keys/pluknet.key
+RUN curl -O https://nginx.org/keys/sb.key
+RUN curl -O https://nginx.org/keys/thresh.key
+RUN gpg --import nginx_signing.key
+RUN gpg --import arut.key
+RUN gpg --import pluknet.key
+RUN gpg --import sb.key
+RUN gpg --import thresh.key
 
 # Download NGINX, verify integrity and extract
 WORKDIR /tmp 
-RUN curl -O http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
-RUN curl -O http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz.asc 
-# RUN gpg --verify nginx-${NGINX_VERSION}.tar.gz.asc nginx-${NGINX_VERSION}.tar.gz 
+RUN curl -O https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
+RUN curl -O https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz.asc 
+RUN gpg --verify nginx-${NGINX_VERSION}.tar.gz.asc nginx-${NGINX_VERSION}.tar.gz 
 RUN tar xzf nginx-${NGINX_VERSION}.tar.gz 
 RUN export CFLAGS="-m64 -march=native -mtune=native -Ofast -flto -funroll-loops -ffunction-sections -fdata-sections -Wl,--gc-sections"
 RUN export LDFLAGS="-m64 -Wl,-s -Wl,-Bsymbolic -Wl,--gc-sections"
